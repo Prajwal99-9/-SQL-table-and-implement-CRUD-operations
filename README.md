@@ -24,5 +24,5 @@ python main.py
 
 
 
-![screenshot_output](https://github.com/Prajwal99-9/-SQL-table-and-implement-CRUD-operations/assets/113464703/f6523390-84d9-4a4e-bccb-e80a0fda4c67)
+
 
