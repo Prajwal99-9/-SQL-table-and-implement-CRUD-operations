@@ -17,3 +17,5 @@ pip install -r requirements.txt
 
 Run the following command to start the program:
 python main.py
+
+![screenshot_output](https://github.com/Prajwal99-9/-SQL-table-and-implement-CRUD-operations/assets/113464703/7c8aaf21-568e-4642-a884-4135ee85ca22)
