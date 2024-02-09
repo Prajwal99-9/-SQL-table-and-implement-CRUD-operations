@@ -1,93 +1,79 @@
-# Import the MySQL connector library
-import mysql.connector
+import sqlite3
+from datetime import datetime
 
-# Create a connection object to connect to the MySQL server
-conn = mysql.connector.connect(
-    host="localhost", # The host name or IP address of the MySQL server
-    user="root", # The user name for the MySQL server
-    password="Best@8217", # The password for the MySQL server
-    database="test" # The name of the database to use
-)
-
-# Create a cursor object to execute SQL queries
+# Connect to the SQLite database (you can change this to another database if needed)
+conn = sqlite3.connect('registration.db')
 cursor = conn.cursor()
 
-# Create the Registration table with the given fields
-cursor.execute("""
-CREATE TABLE Registration (
-    ID INT PRIMARY KEY AUTO_INCREMENT,
-    Name VARCHAR(255) NOT NULL,
-    Email VARCHAR(255) NOT NULL,
-    DateOfBirth DATE,
-    Phone VARCHAR(15), # An additional field for phone number
-    UNIQUE (Email) # A constraint to ensure email is unique
-)
-""")
-
-# Commit the changes to the database
+# Create Registration table if not exists
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Register (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Email TEXT NOT NULL,
+    DateOfBirth DATE
+);
+''')
 conn.commit()
 
-# Define a function to create a new record in the Registration table
-def create_record(name, email, date_of_birth, phone):
-    # Prepare the SQL query with placeholders for the values
-    query = "INSERT INTO Registration (Name, Email, DateOfBirth, Phone) VALUES (%s, %s, %s, %s)"
-    # Execute the query with the given values
-    cursor.execute(query, (name, email, date_of_birth, phone))
-    # Commit the changes to the database
-    conn.commit()
-    # Return the ID of the inserted record
-    return cursor.lastrowid
+# CRUD Operations
 
-# Define a function to retrieve a record from the Registration table by ID
-def read_record_by_id(id):
-    # Prepare the SQL query with a placeholder for the ID
-    query = "SELECT * FROM Registration WHERE ID = %s"
-    # Execute the query with the given ID
-    cursor.execute(query, (id,))
-    # Fetch the result as a tuple
-    result = cursor.fetchone()
-    # Return the result or None if not found
-    return result
+def create_record(name, email, date_of_birth):
+    try:
+        cursor.execute('''
+        INSERT INTO Register (Name, Email, DateOfBirth)
+        VALUES (?, ?, ?);
+        ''', (name, email, date_of_birth))
+        conn.commit()
+        print("Record created successfully.")
+    except Exception as e:
+        print(f"Error creating record: {e}")
 
-# Define a function to update a record in the Registration table by ID
-def update_record_by_id(id, name, email, date_of_birth, phone):
-    # Prepare the SQL query with placeholders for the values and the ID
-    query = "UPDATE Registration SET Name = %s, Email = %s, DateOfBirth = %s, Phone = %s WHERE ID = %s"
-    # Execute the query with the given values and ID
-    cursor.execute(query, (name, email, date_of_birth, phone, id))
-    # Commit the changes to the database
-    conn.commit()
-    # Return the number of affected rows
-    return cursor.rowcount
+def read_records():
+    try:
+        cursor.execute('SELECT * FROM Register;')
+        records = cursor.fetchall()
+        if records:
+            for record in records:
+                print(record)
+        else:
+            print("No records found.")
+    except Exception as e:
+        print(f"Error reading records: {e}")
 
-# Define a function to delete a record from the Registration table by ID
-def delete_record_by_id(id):
-    # Prepare the SQL query with a placeholder for the ID
-    query = "DELETE FROM Registration WHERE ID = %s"
-    # Execute the query with the given ID
-    cursor.execute(query, (id,))
-    # Commit the changes to the database
-    conn.commit()
-    # Return the number of affected rows
-    return cursor.rowcount
+def update_record(record_id, new_name, new_email, new_date_of_birth):
+    try:
+        cursor.execute('''
+        UPDATE Register
+        SET Name=?, Email=?, DateOfBirth=?
+        WHERE ID=?;
+        ''', (new_name, new_email, new_date_of_birth, record_id))
+        conn.commit()
+        print("Record updated successfully.")
+    except Exception as e:
+        print(f"Error updating record: {e}")
 
-# Test the functions with some sample data
-# Create a new record
-id = create_record("Prajwal", "kumbar@example.com", "2001-01-01", "9900306938")
-print(f"Created a new record with ID {id}")
+def delete_record(record_id):
+    try:
+        cursor.execute('DELETE FROM Register WHERE ID=?;', (record_id,))
+        conn.commit()
+        print("Record deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting record: {e}")
 
-# Retrieve the record by ID
-record = read_record_by_id(id)
-print(f"Retrieved the record by ID {id}: {record}")
+# Example Usage
+create_record("shashi kumar", "shashi@example.com", datetime(2000, 5, 10))
+create_record("Rahul hugar", "sachin@example.com", datetime(1999, 7, 16))
 
-# Update the record by ID
-rows = update_record_by_id(id, "Alice", "alice@gmail.com", "1990-01-01", "0987654321")
-print(f"Updated the record by ID {id}: {rows} row(s) affected")
+read_records()
 
-# Delete the record by ID
-rows = delete_record_by_id(id)
-print(f"Deleted the record by ID {id}: {rows} row(s) affected")
+update_record(1, "John Updated", "Rahul.updated@example.com", datetime(1992, 2, 20))
 
-# Close the cursor and the connection
-cursor.close()
+read_records()
+
+delete_record(2)
+
+read_records()
+
+# Close the database connection
 conn.close()
